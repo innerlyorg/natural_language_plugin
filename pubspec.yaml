@@ -1,0 +1,20 @@
+name: natural_language_plugin
+description: Flutter plugin to use Apple NaturalLanguage for sentiment and entity extraction on iOS and macOS.
+version: 0.0.1
+homepage: https://yourhomepage.com
+
+flutter:
+  plugin:
+    platforms:
+      ios:
+        pluginClass: NaturalLanguagePlugin
+      macos:
+        pluginClass: NaturalLanguagePlugin
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
