@@ -36,4 +36,19 @@ class NaturalLanguagePlugin {
       });
     }).toList();
   }
+
+  static Future<String?> loadModel(String modelPath) async {
+    final result = await _channel.invokeMethod<String>('loadModel', {
+      'modelPath': modelPath,
+    });
+    return result;
+  }
+
+  static Future<String?> predictWithModel(String modelPath, String text) async {
+    final result = await _channel.invokeMethod<String>('predictWithModel', {
+      'modelPath': modelPath,
+      'text': text,
+    });
+    return result;
+  }
 }
