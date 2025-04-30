@@ -1,6 +1,6 @@
 import Flutter
-import Foundation
 import NaturalLanguage
+import Foundation
 
 public class NaturalLanguagePlugin: NSObject, FlutterPlugin {
     public static func register(with registrar: FlutterPluginRegistrar) {
@@ -35,13 +35,17 @@ public class NaturalLanguagePlugin: NSObject, FlutterPlugin {
         return language?.rawValue == "en"
     }
 
-    private func analyzeSentiment(text: String) -> String {
+    private func analyzeSentiment(text: String) -> Double? {
         if #available(iOS 13.0, *) {
-            let predictor = NLSentimentClassifier()
-            let sentiment = predictor.predictedSentiment(for: text)
-            return sentiment.rawValue
+            let tagger = NLTagger(tagSchemes: [.sentimentScore])
+            tagger.string = text
+            let (sentiment, _) = tagger.tag(at: text.startIndex, unit: .paragraph, scheme: .sentimentScore)
+            if let scoreString = sentiment?.rawValue, let score = Double(scoreString) {
+                return score
+            }
+            return nil
         } else {
-            return "unsupported"
+            return nil
         }
     }
 
