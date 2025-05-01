@@ -40,20 +40,6 @@ public class NaturalLanguagePlugin: NSObject, FlutterPlugin {
             }
             result(extractEntities(text: text))
             
-        case "loadModel":
-            guard let modelPath = args["modelPath"] as? String else {
-                result(FlutterError(code: "INVALID_ARGUMENTS", message: "Missing 'modelPath' argument", details: nil))
-                return
-            }
-            loadModel(modelPath: modelPath, result: result)
-            
-        case "predictWithModel":
-            guard let inputData = args["inputData"] as? [String: Any] else {
-                result(FlutterError(code: "INVALID_ARGUMENTS", message: "Missing 'inputData' argument", details: nil))
-                return
-            }
-            predictWithModel(inputData: inputData, result: result)
-            
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -94,7 +80,6 @@ public class NaturalLanguagePlugin: NSObject, FlutterPlugin {
                 if let tag = tag, tag != .other, tags.contains(tag) {
                     let textValue: String = String(text[tokenRange])
                     let typeValue: String = tag.rawValue
-                    print("textValue: \(textValue), typeValue: \(typeValue)")
                     entities.append([
                         "text": textValue,
                         "type": typeValue
@@ -113,73 +98,5 @@ public class NaturalLanguagePlugin: NSObject, FlutterPlugin {
         }
 
         return result
-    }
-
-    private func loadModel(modelPath: String, result: @escaping FlutterResult) {
-        do {
-            // Check if file exists at path
-            let fileManager = FileManager.default
-            guard fileManager.fileExists(atPath: modelPath) else {
-                result(FlutterError(code: "MODEL_NOT_FOUND", message: "Model file not found at path: \(modelPath)", details: nil))
-                return
-            }
-            
-            // Create URL from path
-            let modelURL = URL(fileURLWithPath: modelPath)
-            
-            // Compile model
-            let compiledModelURL = try MLModel.compileModel(at: modelURL)
-            
-            // Load compiled model
-            self.model = try MLModel(contentsOf: compiledModelURL)
-            result(true)
-        } catch {
-            result(FlutterError(code: "MODEL_LOADING_ERROR", message: "Failed to load model: \(error.localizedDescription)", details: nil))
-        }
-    }
-    
-    private func predictWithModel(inputData: [String: Any], result: @escaping FlutterResult) {
-        guard let model = self.model else {
-            result(FlutterError(code: "MODEL_NOT_LOADED", message: "No model has been loaded", details: nil))
-            return
-        }
-        
-        do {
-            // Convert the input dictionary to MLFeatureProvider
-            let inputFeatures = try MLDictionaryFeatureProvider(dictionary: inputData)
-            
-            // Make prediction
-            let prediction = try model.prediction(from: inputFeatures)
-            
-            // Convert output features to dictionary
-            var outputDict: [String: Any] = [:]
-            for featureName in prediction.featureNames {
-                if let feature = prediction.featureValue(for: featureName) {
-                    switch feature.type {
-                    case .string:
-                        outputDict[featureName] = feature.stringValue
-                    case .int64:
-                        outputDict[featureName] = feature.int64Value
-                    case .double:
-                        outputDict[featureName] = feature.doubleValue
-                    case .multiArray:
-                        if let multiArray = feature.multiArrayValue {
-                            var array: [Double] = []
-                            for i in 0..<multiArray.count {
-                                array.append(multiArray[i].doubleValue)
-                            }
-                            outputDict[featureName] = array
-                        }
-                    default:
-                        // For other types, convert to string representation
-                        outputDict[featureName] = "\(feature)"
-                    }
-                }
-            }
-            
-            result(outputDict)
-        } catch {
-            result(FlutterError(code: "PREDICTION_ERROR", message: "Failed to make prediction: \(error.localizedDescription)", details: nil))
-        }
     }
 }

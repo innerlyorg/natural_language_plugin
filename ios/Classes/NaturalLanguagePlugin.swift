@@ -63,7 +63,6 @@ public class NaturalLanguagePlugin: NSObject, FlutterPlugin {
                 if let tag = tag, tag != .other, tags.contains(tag) {
                     let textValue: String = String(text[tokenRange])
                     let typeValue: String = tag.rawValue
-                    print("textValue: \(textValue), typeValue: \(typeValue)")
                     entities.append([
                         "text": textValue,
                         "type": typeValue
